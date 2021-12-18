@@ -2,10 +2,12 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:firebased/screens/authenticate/sign_in.dart';
+import 'package:firebased/services/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 //void main() => runApp(LoadDataFromFireBase());
 
@@ -13,6 +15,16 @@ class LoadDataFromFireBase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('ja'),
+        const Locale('en'),
+        const Locale('es'),
+      ],
+      locale: const Locale('es'),
       debugShowCheckedModeBanner: false,
       title: 'FireBase',
       home: LoadDataFromFireStore(),
@@ -30,7 +42,7 @@ class LoadDataFromFireStoreState extends State<LoadDataFromFireStore> {
   List<Color> _colorCollection;
   Query meetingQuery;
   MeetingDataSource events;
-  final List<String> options = <String>['Add', 'Delete', 'Update'];
+  final List<String> options = <String>['Añadir', 'Eliminar', 'Actualizar'];
   var fireBaseInstance = FirebaseDatabase.instance.reference();
   StreamSubscription onMeetingAddedSubscription,
       onMeetingDeletedSubscription,
@@ -80,47 +92,65 @@ class LoadDataFromFireStoreState extends State<LoadDataFromFireStore> {
 
   bool isInitialLoaded = false;
 
+  final AuthService _auth = AuthService();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.brown[340],
       appBar: AppBar(
-          leading: PopupMenuButton<String>(
-        icon: Icon(Icons.settings),
-        itemBuilder: (BuildContext context) => options.map((String choice) {
-          return PopupMenuItem<String>(
-            value: choice,
-            child: Text(choice),
-          );
-        }).toList(),
-        onSelected: (String value) {
-          if (value == 'Add') {
-            final dbRef = fireBaseInstance.child("CitasDrCarlDogtor");
-            dbRef.push().set({
-              "Paciente": 'Fech',
-              "Especie": 'Huron',
-              "Tiempo de Agenda": '25/11/2021 15:00:00',
-              "Tiempo de Atencion": '25/11/2021 18:50:00',
-            }).then((_) {
-              Scaffold.of(context)
-                  .showSnackBar(SnackBar(content: Text('Successfully Added')));
-            }).catchError((onError) {
-              print(onError);
-            });
-          } else if (value == 'Delete') {
-            String key =
-                events.appointments[events.appointments.length - 1].key;
-            fireBaseInstance.child("CitasDrCarlDogtor").child(key).remove();
-          } else {
-            String key = events.appointments[0].key;
-            fireBaseInstance.child("CitasDrCarlDogtor").child(key).update({
-              "Paciente": 'Mike',
-              "Especie": 'Gato',
-              "Tiempo de Agenda": '20/11/2021 12:00:00',
-              "Tiempo de Atencion": '21/11/2021 18:00:00',
-            });
-          }
-        },
-      )),
+        foregroundColor: Colors.brown[340],
+        leading: PopupMenuButton<String>(
+          icon: Icon(Icons.settings),
+          itemBuilder: (BuildContext context) => options.map((String choice) {
+            return PopupMenuItem<String>(
+              value: choice,
+              child: Text(choice),
+            );
+          }).toList(),
+          onSelected: (String value) {
+            if (value == 'Añadir') {
+              final dbRef = fireBaseInstance.child("CitasDrCarlDogtor");
+              dbRef.push().set({
+                "Paciente": 'Fech',
+                "Especie": 'Huron',
+                "Tiempo de Agenda": '25/11/2021 15:00:00',
+                "Tiempo de Atencion": '25/11/2021 18:50:00',
+              }).then((_) {
+                Scaffold.of(context).showSnackBar(
+                    SnackBar(content: Text('Successfully Added')));
+              }).catchError((onError) {
+                print(onError);
+              });
+            } else if (value == 'Eliminar') {
+              String key =
+                  events.appointments[events.appointments.length - 1].key;
+              fireBaseInstance.child("CitasDrCarlDogtor").child(key).remove();
+            } else {
+              String key = events.appointments[0].key;
+              fireBaseInstance.child("CitasDrCarlDogtor").child(key).update({
+                "Paciente": 'Mike',
+                "Especie": 'Gato',
+                "Tiempo de Agenda": '20/11/2021 12:00:00',
+                "Tiempo de Atencion": '21/11/2021 18:00:00',
+              });
+            }
+          },
+        ),
+        title: Text('Citas'),
+        elevation: 0.0,
+        actions: [
+          TextButton.icon(
+            icon: Icon(Icons.person),
+            label: Text('Cerrar sesion'),
+            style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all(Colors.white)),
+            onPressed: () async {
+              await _auth.signOut();
+            },
+          ),
+        ],
+      ),
       body: _showCalendar(),
     );
   }

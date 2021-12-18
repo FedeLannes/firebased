@@ -1,24 +1,21 @@
 // @dart=2.9
-import 'package:firebased/screens/calendar.dart';
 import 'package:firebased/services/auth.dart';
 import 'package:flutter/material.dart';
 
-class SignIn extends StatefulWidget {
+class Register extends StatefulWidget {
   final Function toggleView;
-  SignIn({this.toggleView});
+  Register({this.toggleView});
 
   @override
-  _SignInState createState() => _SignInState();
+  _RegisterState createState() => _RegisterState();
 }
 
-class _SignInState extends State<SignIn> {
+class _RegisterState extends State<Register> {
+  final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
-
   String email = '';
   String password = '';
   String error = '';
-
-  final AuthService _auth = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +24,11 @@ class _SignInState extends State<SignIn> {
       appBar: AppBar(
         backgroundColor: Colors.blue[340],
         elevation: 0.0,
-        title: Text('Ingresar'),
+        title: Text('Pagina de registro'),
         actions: [
           TextButton.icon(
             icon: Icon(Icons.person),
-            label: Text('Registrarse'),
+            label: Text('Ingresar'),
             style: ButtonStyle(
                 foregroundColor: MaterialStateProperty.all(Colors.white)),
             onPressed: () {
@@ -70,12 +67,11 @@ class _SignInState extends State<SignIn> {
                   primary: Colors.red,
                   onPrimary: Colors.white,
                 ),
-                child: Text('Ingresar'),
+                child: Text('Registrarse'),
                 onPressed: () async {
                   if (_formKey.currentState.validate()) {
-                    dynamic result =
-                        await _auth.signInWithEmailAndPassword(email, password);
-
+                    dynamic result = await _auth.registerWithEmailAndPassword(
+                        email, password);
                     if (result == null) {
                       setState(
                           () => error = 'Por favor, ingrese un correo valido');
